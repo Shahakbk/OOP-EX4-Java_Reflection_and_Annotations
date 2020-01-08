@@ -48,37 +48,6 @@ public class OOPObject {
        return false;
     }
 
-   /* public Object definingObject(String methodName, Class<?> ...argTypes)
-            throws OOP4AmbiguousMethodException, OOP4NoSuchMethodException {
-        ArrayList<Object> definers = new ArrayList<>();
-        try {
-            this.getClass().getMethod(methodName, argTypes); //TODO if there are no protected methods this should be fine
-            return this;
-        } catch (Exception e) {
-            for(Object i : directParents){
-                try {
-                    i.getClass().getMethod(methodName, argTypes);
-                    definers.add(i);
-                }catch (Exception ex){
-                    if(i instanceof OOPObject){
-                        Object o = ((OOPObject)i).definingObject(methodName,argTypes);
-                        if(o != null){
-                        definers.add(o);
-                        }
-                    }
-                }
-
-            }
-        }
-        if(definers.size()>1){
-            throw new OOP4AmbiguousMethodException();
-        }
-        else if(definers.size()==0) {
-            throw new OOP4NoSuchMethodException();
-        }
-        return definers.get(0);
-    }*/
-
     /**
      * Receives a class, a method name and arguments and checks if the method is defined within the class. The purpose
      * is to avoid the exception thrown from getMethod.
