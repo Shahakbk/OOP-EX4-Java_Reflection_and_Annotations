@@ -1,5 +1,3 @@
-package OOP.Tests;
-
 import OOP.Solution.*;
 import OOP.Provided.*;
 import org.junit.Assert;

@@ -1,5 +1,3 @@
-package OOP.Tests;
-
 import OOP.Provided.*;
 import OOP.Solution.OOPObject;
 

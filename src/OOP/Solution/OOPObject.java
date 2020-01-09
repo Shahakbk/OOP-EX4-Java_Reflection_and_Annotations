@@ -20,6 +20,7 @@ public class OOPObject {
     private boolean isMostDerived = false; // True if the constructor was called for the most derived object.
 
     public OOPObject() throws OOP4ObjectInstantiationFailedException {
+        directParents = new ArrayList<>();
         if (!isStaticVirtualAncestorsInitiated) {
             staticVirtualAncestors = new HashMap<>();
             isMostDerived = true;
@@ -27,38 +28,39 @@ public class OOPObject {
         }
         Class<?> c = this.getClass(); //TODO make sure this is necessary
         OOPParents annotation = c.getAnnotation(OOPParents.class);
-        OOPParent[] parents = annotation.value();
-        try {
-            for (OOPParent i : parents) {
-                if (i.isVirtual()) {
-                    // If it inherits virtually, first check if the object was already initiated.
+        if(annotation != null) {
+            OOPParent[] parents = annotation.value();
+            try {
+                for (OOPParent i : parents) {
+                    if (i.isVirtual()) {
+                        // If it inherits virtually, first check if the object was already initiated.
                 /*if (Modifier.isPrivate(constructor.getModifiers())) {
                     throw new OOP4ObjectInstantiationFailedException();
                 }*/ //TODO: check if really need to check private or it will auto throw.
-                    if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
-                        Constructor constructor = i.parent().getDeclaredConstructor();
-                        staticVirtualAncestors.put(i.parent().getSimpleName(), constructor.newInstance());
+                        if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
+                            Constructor constructor = i.parent().getDeclaredConstructor();
+                            staticVirtualAncestors.put(i.parent().getSimpleName(), constructor.newInstance());
+                        }
                     }
                 }
-            }
 
-            for (OOPParent i : parents) {
-                if (!i.isVirtual()) {
-                    // If the inheritance is non-virtual, create an instance.
-                    Constructor constructor = i.parent().getDeclaredConstructor();
+                for (OOPParent i : parents) {
+                    if (!i.isVirtual()) {
+                        // If the inheritance is non-virtual, create an instance.
+                        Constructor constructor = i.parent().getDeclaredConstructor();
                 /*if (Modifier.isPrivate(constructor.getModifiers())) {
                     throw new OOP4ObjectInstantiationFailedException();
                 }*/ //TODO: check if really need to check private or it will auto throw.
-                    directParents.add(constructor.newInstance());
-                } else {
-                    // In this case the inheritance is virtual, so the object was already initiated previously.
-                    directParents.add(staticVirtualAncestors.get(i.parent().getSimpleName()));
+                        directParents.add(constructor.newInstance());
+                    } else {
+                        // In this case the inheritance is virtual, so the object was already initiated previously.
+                        directParents.add(staticVirtualAncestors.get(i.parent().getSimpleName()));
+                    }
                 }
+            } catch (Exception e) {
+                throw new OOP4ObjectInstantiationFailedException();
             }
-        } catch (Exception e) {
-            throw new OOP4ObjectInstantiationFailedException();
         }
-
         if (isMostDerived) {
             virtualAncestors = staticVirtualAncestors;
             isStaticVirtualAncestorsInitiated = false;

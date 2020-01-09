@@ -1,5 +1,3 @@
-package OOP.Tests;
-
 import OOP.Provided.OOP4MethodInvocationFailedException;
 import OOP.Provided.OOP4AmbiguousMethodException;
 import OOP.Provided.OOP4NoSuchMethodException;
