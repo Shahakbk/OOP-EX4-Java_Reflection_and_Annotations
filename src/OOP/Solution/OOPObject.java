@@ -5,35 +5,64 @@ import OOP.Provided.OOP4MethodInvocationFailedException;
 import OOP.Provided.OOP4NoSuchMethodException;
 import OOP.Provided.OOP4ObjectInstantiationFailedException;
 
-import javax.lang.model.type.ArrayType;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 import java.lang.reflect.Method;
-import java.util.stream.Stream;
 
 public class OOPObject {
 
     ArrayList<Object> directParents;
+    Map<String, Object> virtualAncestors;
+    private static Map<String, Object> staticVirtualAncestors;
+    private static boolean isStaticVirtualAncestorsInitiated = false; // True if staticVirtualAncestors was initiated.
+    private boolean isMostDerived = false; // True if the constructor was called for the most derived object.
 
     public OOPObject() throws OOP4ObjectInstantiationFailedException {
+        if (!isStaticVirtualAncestorsInitiated) {
+            staticVirtualAncestors = new HashMap<>();
+            isMostDerived = true;
+            isStaticVirtualAncestorsInitiated = true;
+        }
         Class<?> c = this.getClass(); //TODO make sure this is necessary
         OOPParents annotation = c.getAnnotation(OOPParents.class);
         OOPParent[] parents = annotation.value();
         try {
-            for(OOPParent i : parents) {
-                Constructor constructor = i.parent().getDeclaredConstructor();
+            for (OOPParent i : parents) {
+                if (i.isVirtual()) {
+                    // If it inherits virtually, first check if the object was already initiated.
                 /*if (Modifier.isPrivate(constructor.getModifiers())) {
                     throw new OOP4ObjectInstantiationFailedException();
                 }*/ //TODO: check if really need to check private or it will auto throw.
-                directParents.add(constructor.newInstance());
+                    if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
+                        Constructor constructor = i.parent().getDeclaredConstructor();
+                        staticVirtualAncestors.put(i.parent().getSimpleName(), constructor.newInstance());
+                    }
+                }
+            }
+
+            for (OOPParent i : parents) {
+                if (!i.isVirtual()) {
+                    // If the inheritance is non-virtual, create an instance.
+                    Constructor constructor = i.parent().getDeclaredConstructor();
+                /*if (Modifier.isPrivate(constructor.getModifiers())) {
+                    throw new OOP4ObjectInstantiationFailedException();
+                }*/ //TODO: check if really need to check private or it will auto throw.
+                    directParents.add(constructor.newInstance());
+                } else {
+                    // In this case the inheritance is virtual, so the object was already initiated previously.
+                    directParents.add(staticVirtualAncestors.get(i.parent().getSimpleName()));
+                }
             }
         } catch (Exception e) {
             throw new OOP4ObjectInstantiationFailedException();
+        }
+
+        if (isMostDerived) {
+            virtualAncestors = staticVirtualAncestors;
+            isStaticVirtualAncestorsInitiated = false;
+            isMostDerived = false;
         }
     }
 
@@ -63,7 +92,7 @@ public class OOPObject {
 
     public Object definingObject(String methodName, Class<?> ...argTypes)
             throws OOP4AmbiguousMethodException, OOP4NoSuchMethodException {
-        ArrayList<Object> definers = new ArrayList<>();
+        ArrayList<Object> definers = new ArrayList<>(); // Hold all of the objects defining the method.
         if (isMethodSelfDefined(this.getClass(), methodName, argTypes)) return this; // Check if the current class defines the method.
 
         // Check if any of the objects in directParents defines the methods
@@ -72,7 +101,9 @@ public class OOPObject {
                 // If the object is of type OOPObject, call recursively.
                try {
                    Object o = ((OOPObject) i).definingObject(methodName, argTypes);
-                   definers.add(o);
+                   if (!definers.contains(o)) {
+                       definers.add(o);
+                   }
                } catch (OOP4NoSuchMethodException ignored) {} // Ignore this exception, continue iterating.
             }
             else {
