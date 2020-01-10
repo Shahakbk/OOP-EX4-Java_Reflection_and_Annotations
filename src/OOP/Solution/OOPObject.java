@@ -6,6 +6,7 @@ import OOP.Provided.OOP4NoSuchMethodException;
 import OOP.Provided.OOP4ObjectInstantiationFailedException;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,28 @@ public class OOPObject {
     private static boolean isStaticVirtualAncestorsInitiated = false; // True if staticVirtualAncestors was initiated.
     private boolean isMostDerived = false; // True if the constructor was called for the most derived object.
 
+    static private void initStaticVirtualAncestors(OOPParent[] parents) throws OOP4ObjectInstantiationFailedException{
+        if (parents == null) return;
+        for (OOPParent i : parents) {
+            if (i.isVirtual()) {
+                // If it inherits virtually, first check if the object was already initiated.
+                /*if (Modifier.isPrivate(constructor.getModifiers())) {
+                    throw new OOP4ObjectInstantiationFailedException();
+                }*/ //TODO: check if really need to check private or it will auto throw.
+                try {
+                    if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
+                        Constructor constructor = i.parent().getDeclaredConstructor();
+                        staticVirtualAncestors.put(i.parent().getSimpleName(), constructor.newInstance());
+                    }
+                }catch(Exception e){
+                    throw new OOP4ObjectInstantiationFailedException();
+                }
+            }
+            initStaticVirtualAncestors(i.getClass().getAnnotationsByType(OOPParent.class));
+        }
+    }
+
+
     public OOPObject() throws OOP4ObjectInstantiationFailedException {
         directParents = new ArrayList<>();
         if (!isStaticVirtualAncestorsInitiated) {
@@ -31,18 +54,8 @@ public class OOPObject {
         OOPParent[] parents = c.getAnnotationsByType(OOPParent.class); // This fixed it
         if (parents != null) {
             try {
-                for (OOPParent i : parents) {
-                    if (i.isVirtual()) {
-                        // If it inherits virtually, first check if the object was already initiated.
-                /*if (Modifier.isPrivate(constructor.getModifiers())) {
-                    throw new OOP4ObjectInstantiationFailedException();
-                }*/ //TODO: check if really need to check private or it will auto throw.
-                        if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
-                            Constructor constructor = i.parent().getDeclaredConstructor();
-                            staticVirtualAncestors.put(i.parent().getSimpleName(), constructor.newInstance());
-                        }
-                    }
-                }
+                // Create the virtual ancestors structure.
+                initStaticVirtualAncestors(parents);
 
                 for (OOPParent i : parents) {
                     if (!i.isVirtual()) {
@@ -71,7 +84,7 @@ public class OOPObject {
     public boolean multInheritsFrom(Class<?> cls) {
        for (Object i : directParents) { //TODO: check if all are OOPboject childs.
            if ( (i.getClass() == cls) ||
-               (i.getClass().isAssignableFrom(cls)) ||
+               (!(i instanceof  OOPObject) && cls.isAssignableFrom(i.getClass())) ||
                (i instanceof OOPObject && ((OOPObject) i).multInheritsFrom(cls)) ) {
                return true;
            }
@@ -131,7 +144,7 @@ public class OOPObject {
         }
         Object o = definingObject(methodName, args);
         try {
-            Method m = o.getClass().getDeclaredMethod(methodName, args);
+            Method m = o.getClass().getMethod(methodName, args);
             return m.invoke(o, callArgs);
         } catch (Exception e) {
             throw new OOP4MethodInvocationFailedException();
