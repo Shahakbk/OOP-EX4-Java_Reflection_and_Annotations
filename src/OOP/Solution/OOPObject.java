@@ -26,10 +26,10 @@ public class OOPObject {
             isMostDerived = true;
             isStaticVirtualAncestorsInitiated = true;
         }
-        Class<?> c = this.getClass(); //TODO make sure this is necessary
-        OOPParents annotation = c.getAnnotation(OOPParents.class);
-        if(annotation != null) {
-            OOPParent[] parents = annotation.value();
+        Class<?> c = this.getClass();
+        //OOPParents annotation = c.getAnnotation(OOPParents.class); // For some reason this sometimes return the container as null
+        OOPParent[] parents = c.getAnnotationsByType(OOPParent.class); // This fixed it
+        if (parents != null) {
             try {
                 for (OOPParent i : parents) {
                     if (i.isVirtual()) {
