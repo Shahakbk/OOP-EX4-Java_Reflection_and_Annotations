@@ -21,7 +21,7 @@ public class OOPObject {
     private boolean isMostDerived = false; // True if the constructor was called for the most derived object.
 
     static private void initStaticVirtualAncestors(OOPParent[] parents) throws OOP4ObjectInstantiationFailedException{
-        if (parents == null) return;
+        if (parents.length == 0) return;    //since now getAnnotationsByType returns array of size 0 if none was found
         for (OOPParent i : parents) {
             if (i.isVirtual()) {
                 // If it inherits virtually, first check if the object was already initiated.
@@ -37,7 +37,9 @@ public class OOPObject {
                     throw new OOP4ObjectInstantiationFailedException();
                 }
             }
-            initStaticVirtualAncestors(i.getClass().getAnnotationsByType(OOPParent.class));
+            else{       //TODO: if here is ment for not sending the virtual classes because they are built.
+                initStaticVirtualAncestors(i.parent().getAnnotationsByType(OOPParent.class));
+            }
         }
     }
 
@@ -52,7 +54,7 @@ public class OOPObject {
         Class<?> c = this.getClass();
         //OOPParents annotation = c.getAnnotation(OOPParents.class); // For some reason this sometimes return the container as null
         OOPParent[] parents = c.getAnnotationsByType(OOPParent.class); // This fixed it
-        if (parents != null) {
+        if (parents.length != 0) {  //since now getAnnotationsByType returns array of size 0 if none was found
             try {
                 // Create the virtual ancestors structure.
                 initStaticVirtualAncestors(parents);
