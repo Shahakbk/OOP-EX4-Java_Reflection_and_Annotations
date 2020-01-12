@@ -21,12 +21,12 @@ public class OOPObject {
     private boolean isMostDerived = false; // True if the constructor was called for the most derived object.
 
     static private void initStaticVirtualAncestors(OOPParent[] parents) throws OOP4ObjectInstantiationFailedException{
-        if (parents.length == 0) return;    //since now getAnnotationsByType returns array of size 0 if none was found
+        if (parents.length == 0) return; // since now getAnnotationsByType returns array of size 0 if none was found
         for (OOPParent i : parents) {
             if (i.isVirtual()) {
                 // If it inherits virtually, first check if the object was already initiated.
                 try {
-                    if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
+                    if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) {
                         Constructor constructor = i.parent().getDeclaredConstructor();
 
                         // Do not call a private constructor, only protected.
@@ -46,7 +46,6 @@ public class OOPObject {
             }
         }
     }
-
 
     public OOPObject() throws OOP4ObjectInstantiationFailedException {
         directParents = new ArrayList<>();
@@ -96,7 +95,7 @@ public class OOPObject {
        for (Object i : directParents) {
            if ( (i.getClass() == cls) ||
                (!(i instanceof  OOPObject) && cls.isAssignableFrom(i.getClass())) ||
-               (i instanceof OOPObject && ((OOPObject) i).multInheritsFrom(cls)) ) {
+               ((i instanceof OOPObject) && ((OOPObject) i).multInheritsFrom(cls)) ) {
                return true;
            }
        }

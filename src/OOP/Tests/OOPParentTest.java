@@ -1,3 +1,5 @@
+package OOP.Tests;
+
 import OOP.Provided.OOP4ObjectInstantiationFailedException;
 import OOP.Solution.OOPParent;
 import OOP.Solution.OOPObject;

@@ -1,3 +1,5 @@
+package OOP.Tests;
+
 import OOP.Provided.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
