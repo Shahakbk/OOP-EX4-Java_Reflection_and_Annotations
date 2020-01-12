@@ -25,19 +25,23 @@ public class OOPObject {
         for (OOPParent i : parents) {
             if (i.isVirtual()) {
                 // If it inherits virtually, first check if the object was already initiated.
-                /*if (Modifier.isPrivate(constructor.getModifiers())) {
-                    throw new OOP4ObjectInstantiationFailedException();
-                }*/ //TODO: check if really need to check private or it will auto throw.
                 try {
                     if (!staticVirtualAncestors.containsKey(i.parent().getSimpleName())) { //TODO getSimpleName or getName
                         Constructor constructor = i.parent().getDeclaredConstructor();
+
+                        // Do not call a private constructor, only protected.
+                        if (Modifier.isPrivate(constructor.getModifiers())) {
+                            throw new OOP4ObjectInstantiationFailedException();
+                        }
+                        constructor.setAccessible(true);
+
                         staticVirtualAncestors.put(i.parent().getSimpleName(), constructor.newInstance());
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     throw new OOP4ObjectInstantiationFailedException();
                 }
             }
-            else{       //TODO: if here is ment for not sending the virtual classes because they are built.
+            else {
                 initStaticVirtualAncestors(i.parent().getAnnotationsByType(OOPParent.class));
             }
         }
@@ -63,9 +67,12 @@ public class OOPObject {
                     if (!i.isVirtual()) {
                         // If the inheritance is non-virtual, create an instance.
                         Constructor constructor = i.parent().getDeclaredConstructor();
-                /*if (Modifier.isPrivate(constructor.getModifiers())) {
-                    throw new OOP4ObjectInstantiationFailedException();
-                }*/ //TODO: check if really need to check private or it will auto throw.
+
+                        // Do not call a private constructor, only protected.
+                        if (Modifier.isPrivate(constructor.getModifiers())) {
+                            throw new OOP4ObjectInstantiationFailedException();
+                        }
+                        constructor.setAccessible(true);
                         directParents.add(constructor.newInstance());
                     } else {
                         // In this case the inheritance is virtual, so the object was already initiated previously.
@@ -73,6 +80,8 @@ public class OOPObject {
                     }
                 }
             } catch (Exception e) {
+                isStaticVirtualAncestorsInitiated = false;
+                isMostDerived = false;
                 throw new OOP4ObjectInstantiationFailedException();
             }
         }
@@ -84,7 +93,7 @@ public class OOPObject {
     }
 
     public boolean multInheritsFrom(Class<?> cls) {
-       for (Object i : directParents) { //TODO: check if all are OOPboject childs.
+       for (Object i : directParents) {
            if ( (i.getClass() == cls) ||
                (!(i instanceof  OOPObject) && cls.isAssignableFrom(i.getClass())) ||
                (i instanceof OOPObject && ((OOPObject) i).multInheritsFrom(cls)) ) {
@@ -100,7 +109,7 @@ public class OOPObject {
      */
     static boolean isMethodSelfDefined(Class<?> c, String methodName, Class<?> ...argTypes) {
         try {
-            c.getMethod(methodName, argTypes); //TODO if there are no protected methods this should be fine
+            c.getMethod(methodName, argTypes); // if there are no protected methods this should be fine
         } catch (Exception e) {
             return false;
         }
